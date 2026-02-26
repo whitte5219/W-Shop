@@ -1,1336 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Layer Line Chart Creator</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --accent: #4cc9f0;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --success: #4bb543;
-            --danger: #e63946;
-            --warning: #ff9e00;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f7fb;
-            color: var(--dark);
-            line-height: 1.6;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        header {
-            text-align: center;
-            padding: 25px 0;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 2.3rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .main-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .controls {
-            flex: 1;
-            min-width: 350px;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-        
-        .chart-container {
-            flex: 2;
-            min-width: 600px;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            height: 500px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border 0.3s, box-shadow 0.3s;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        button:hover {
-            background-color: var(--secondary);
-            transform: translateY(-2px);
-        }
-        
-        .btn-success {
-            background-color: var(--success);
-        }
-        
-        .btn-success:hover {
-            background-color: #3a9c35;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-        }
-        
-        .btn-danger:hover {
-            background-color: #c1121f;
-        }
-        
-        .btn-warning {
-            background-color: var(--warning);
-        }
-        
-        .btn-warning:hover {
-            background-color: #e68900;
-        }
-        
-        .btn-info {
-            background-color: var(--accent);
-        }
-        
-        .btn-info:hover {
-            background-color: #3aa8c9;
-        }
-        
-        .color-picker {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .color-option {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.2s;
-        }
-        
-        .color-option:hover {
-            transform: scale(1.1);
-        }
-        
-        .color-option.active {
-            border-color: var(--dark);
-            transform: scale(1.1);
-        }
-        
-        .data-inputs {
-            margin-top: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 5px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            padding: 10px;
-        }
-        
-        .data-inputs::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .data-inputs::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .data-inputs::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 10px;
-        }
-        
-        .data-header {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            font-weight: 600;
-            padding: 0 5px;
-            background-color: #f8f9fa;
-            padding: 8px;
-            border-radius: 5px;
-        }
-        
-        .data-header .label-header {
-            flex: 1;
-        }
-        
-        .data-header .value-header {
-            flex: 1;
-        }
-        
-        .data-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-            transition: background-color 0.2s;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        
-        .data-row:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .data-row input {
-            flex: 1;
-            transition: all 0.3s;
-            background-color: white;
-        }
-        
-        .data-row input:focus {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .remove-data {
-            background-color: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            width: 35px;
-            height: 35px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            font-size: 18px;
-        }
-        
-        .remove-data:hover {
-            background-color: #c1121f;
-            transform: scale(1.1);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .action-buttons button {
-            flex: 1;
-            min-width: 120px;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        .edit-notice {
-            background-color: rgba(67, 97, 238, 0.1);
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            color: var(--primary);
-            border-left: 4px solid var(--primary);
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6c757d;
-            padding: 0;
-            width: auto;
-        }
-        
-        .close-modal:hover {
-            color: var(--danger);
-            transform: none;
-            background: none;
-        }
-        
-        .code-display {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 5px;
-            padding: 15px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        
-        .import-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .import-option {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .file-drop-area {
-            border: 2px dashed #ddd;
-            border-radius: 5px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .file-drop-area:hover, .file-drop-area.dragover {
-            border-color: var(--primary);
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .file-drop-area p {
-            margin-bottom: 10px;
-            color: #6c757d;
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .file-message {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-top: 10px;
-        }
-        
-        .layer-controls {
-            margin-top: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            padding: 15px;
-        }
-        
-        .layer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .layer-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        
-        .layer-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .layer-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            background-color: #f8f9fa;
-            transition: all 0.3s;
-        }
-        
-        .layer-item:hover {
-            background-color: #e9ecef;
-        }
-        
-        .layer-item.active {
-            background-color: rgba(67, 97, 238, 0.1);
-            border-left: 4px solid var(--primary);
-        }
-        
-        .layer-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-        
-        .layer-name {
-            flex: 1;
-            font-weight: 500;
-        }
-        
-        .layer-actions {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .layer-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: #6c757d;
-            padding: 5px;
-            width: auto;
-        }
-        
-        .layer-toggle:hover {
-            color: var(--primary);
-            transform: none;
-            background: none;
-        }
-        
-        .layer-remove {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: #6c757d;
-            padding: 5px;
-            width: auto;
-        }
-        
-        .layer-remove:hover {
-            color: var(--danger);
-            transform: none;
-            background: none;
-        }
-        
-        .visibility-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .visibility-controls button {
-            flex: 1;
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-            
-            .controls, .chart-container {
-                min-width: 100%;
-            }
-            
-            .action-buttons button {
-                min-width: 100px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NETWORK SELF TRACKER · full scan</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 30% 10%, #0c1a2b, #03070f);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 1.5rem;
+      color: #e3e9f2;
+    }
+
+    .dashboard {
+      max-width: 1400px;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header h1 {
+      font-weight: 500;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #b3d0ff, #7aa9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      border-left: 4px solid #3e7bff;
+      padding-left: 1.2rem;
+    }
+
+    .badge {
+      background: rgba(20, 40, 70, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 0.6rem 1.4rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border: 1px solid rgba(90, 150, 255, 0.3);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .badge i {
+      color: #5b9aff;
+      margin-right: 8px;
+    }
+
+    .refresh-btn {
+      background: rgba(20, 35, 60, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid #2d4f7c;
+      color: white;
+      padding: 0.6rem 1.8rem;
+      border-radius: 40px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,30,80,0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .refresh-btn:hover {
+      background: #1f3f6b;
+      border-color: #6e9eff;
+      transform: scale(1.02);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .card {
+      background: rgba(18, 28, 45, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(70, 130, 200, 0.25);
+      border-radius: 28px;
+      padding: 1.6rem 1.4rem;
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(100, 170, 255, 0.5);
+      background: rgba(22, 35, 55, 0.75);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #bfd9ff;
+      border-bottom: 1px dashed #2f4f7f;
+      padding-bottom: 0.6rem;
+    }
+
+    .card-title span {
+      background: #1f3b5c;
+      padding: 0.2rem 0.5rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      color: #a6c9ff;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px dotted rgba(120, 160, 240, 0.15);
+      font-size: 0.95rem;
+    }
+
+    .data-row:last-child {
+      border: none;
+    }
+
+    .row-label {
+      color: #9bb5e0;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .row-value {
+      font-family: 'Fira Code', 'JetBrains Mono', monospace;
+      font-weight: 400;
+      background: rgba(0, 20, 40, 0.6);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      color: #d4e6ff;
+      max-width: 60%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .ip-badge {
+      background: #123456;
+      border-radius: 30px;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.85rem;
+      border: 1px solid #2b5488;
+    }
+
+    .value-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+
+    .value-item {
+      background: #0b1c2f;
+      border-radius: 30px;
+      padding: 0.2rem 0.7rem;
+      border: 1px solid #314e7c;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(150,200,255,0.3);
+      border-radius: 50%;
+      border-top-color: #6ea5ff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footnote {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #5e7ea0;
+      margin-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Multi-Layer Line Chart Creator</h1>
-            <p class="subtitle">Create, customize, and share beautiful multi-line charts</p>
-        </header>
-        
-        <div class="main-content">
-            <div class="controls">
-                <div class="edit-notice">
-                    <strong>Tip:</strong> Click on any label or value in the data table below to edit it. The chart updates automatically!
-                </div>
-                
-                <div class="form-group">
-                    <label for="chart-title">Chart Title</label>
-                    <input type="text" id="chart-title" placeholder="Enter chart title" value="Sales Data">
-                </div>
-                
-                <div class="form-group">
-                    <label for="x-axis-label">X-Axis Label</label>
-                    <input type="text" id="x-axis-label" placeholder="Enter X-axis label" value="Months">
-                </div>
-                
-                <div class="form-group">
-                    <label for="y-axis-label">Y-Axis Label</label>
-                    <input type="text" id="y-axis-label" placeholder="Enter Y-axis label" value="Revenue ($)">
-                </div>
-                
-                <div class="layer-controls">
-                    <div class="layer-header">
-                        <div class="layer-title">Line Layers</div>
-                        <button id="add-layer" class="btn-success">+ Add Layer</button>
-                    </div>
-                    
-                    <div class="layer-list" id="layer-list">
-                        <!-- Layers will be added here dynamically -->
-                    </div>
-                    
-                    <div class="visibility-controls">
-                        <button id="show-all-layers" class="btn-info">Show All</button>
-                        <button id="hide-all-layers" class="btn-info">Hide All</button>
-                    </div>
-                </div>
-                
-                <div class="form-group" id="active-layer-controls">
-                    <label>Active Layer: <span id="active-layer-name">Layer 1</span></label>
-                    <div class="form-group">
-                        <label>Line Color</label>
-                        <div class="color-picker">
-                            <div class="color-option active" style="background-color: #4361ee;" data-color="#4361ee"></div>
-                            <div class="color-option" style="background-color: #e63946;" data-color="#e63946"></div>
-                            <div class="color-option" style="background-color: #2a9d8f;" data-color="#2a9d8f"></div>
-                            <div class="color-option" style="background-color: #e9c46a;" data-color="#e9c46a"></div>
-                            <div class="color-option" style="background-color: #9d4edd;" data-color="#9d4edd"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Layer Data</label>
-                        <div class="data-header">
-                            <div class="label-header">Label (Click to edit)</div>
-                            <div class="value-header">Value (Click to edit)</div>
-                            <div style="width: 35px;"></div>
-                        </div>
-                        <div class="data-inputs" id="data-inputs">
-                            <!-- Data rows will be generated here -->
-                        </div>
-                        <button id="add-data" style="margin-top: 10px; width: 100%;">+ Add Data Point</button>
-                    </div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button id="save-chart" class="btn-success">
-                        ↓ Save Chart
-                    </button>
-                    <button id="export-code" class="btn-warning">
-                        📋 Export Code
-                    </button>
-                    <button id="import-code" class="btn-warning">
-                        📥 Import Code
-                    </button>
-                    <button id="reset-chart" class="btn-danger">
-                        ↺ Reset
-                    </button>
-                </div>
-            </div>
-            
-            <div class="chart-container">
-                <canvas id="myChart"></canvas>
-            </div>
-        </div>
-        
-        <footer>
-            <p>Multi-Layer Line Chart Creator &copy; 2023 | Create, customize and share beautiful multi-line charts</p>
-        </footer>
+<div class="dashboard">
+  <div class="header">
+    <h1>🔍 full network self‑scan</h1>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <div class="badge"><i>⚡</i> live client data · webrtc + ip-api</div>
+      <button class="refresh-btn" id="refreshBtn">↻ refresh scan</button>
+    </div>
+  </div>
+
+  <!-- grid of cards -->
+  <div class="grid" id="cardGrid">
+    <!-- public IP + GEO -->
+    <div class="card" id="geoCard">
+      <div class="card-title">🌍 public IP & geolocation <span>wan</span></div>
+      <div class="data-row"><span class="row-label">🌐 public IPv4</span><span class="row-value" id="publicIp">⟳ scanning...</span></div>
+      <div class="data-row"><span class="row-label">📍 country</span><span class="row-value" id="country">—</span></div>
+      <div class="data-row"><span class="row-label">🏙️ city / region</span><span class="row-value" id="cityRegion">—</span></div>
+      <div class="data-row"><span class="row-label">📡 coordinates</span><span class="row-value" id="coords">—</span></div>
+      <div class="data-row"><span class="row-label">🏢 ISP</span><span class="row-value" id="isp">—</span></div>
+      <div class="data-row"><span class="row-label">🔗 organization</span><span class="row-value" id="org">—</span></div>
+      <div class="data-row"><span class="row-label">🛡️ ASN / host</span><span class="row-value" id="asn">—</span></div>
+      <div class="data-row"><span class="row-label">📟 proxy / vpn</span><span class="row-value" id="proxy">—</span></div>
     </div>
 
-    <!-- Export Code Modal -->
-    <div class="modal" id="export-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Export Chart Code</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <p>Copy the code below to share your chart. You can import it later using the "Import Code" button.</p>
-            <div class="code-display" id="export-code-display"></div>
-            <div class="action-buttons">
-                <button id="copy-code" class="btn-success">Copy to Clipboard</button>
-                <button id="download-code" class="btn-success">Download as File</button>
-                <button class="close-modal">Close</button>
-            </div>
-        </div>
+    <!-- local IPs / interfaces -->
+    <div class="card" id="localIpCard">
+      <div class="card-title">🖧 local network interfaces <span>LAN</span></div>
+      <div class="data-row"><span class="row-label">🏠 private IPv4/v6</span><span class="row-value" id="localIpsList"><span class="value-list" id="localIpsContainer">⟳ gathering via WebRTC...</span></span></div>
+      <div class="data-row"><span class="row-label">🔄 hostname</span><span class="row-value" id="hostname">(not available)</span></div>
+      <div class="data-row"><span class="row-label">📶 default gateway</span><span class="row-value">(restricted)</span></div>
+      <div class="data-row"><span class="row-label">📋 MAC addresses</span><span class="row-value">🔒 not accessible</span></div>
+      <div class="data-row"><span class="row-label">🧪 webrtc candidates</span><span class="row-value" id="candidateCount">waiting...</span></div>
     </div>
 
-    <!-- Import Code Modal -->
-    <div class="modal" id="import-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Import Chart Code</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <p>Import a previously saved chart by uploading a file or pasting the code directly.</p>
-            
-            <div class="import-options">
-                <div class="import-option">
-                    <h3>Upload File</h3>
-                    <div class="file-drop-area" id="file-drop-area">
-                        <p>Drag & drop your chart code file here</p>
-                        <p>or</p>
-                        <button id="browse-files">Browse Files</button>
-                        <input type="file" id="file-input" class="file-input" accept=".txt,.json">
-                        <p class="file-message" id="file-message">No file selected</p>
-                    </div>
-                </div>
-                
-                <div class="import-option">
-                    <h3>Paste Code</h3>
-                    <textarea id="import-code-textarea" placeholder="Paste your chart code here..." rows="8"></textarea>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="confirm-import" class="btn-success">Import Chart</button>
-                <button class="close-modal">Cancel</button>
-            </div>
-        </div>
+    <!-- connection & network info -->
+    <div class="card" id="connCard">
+      <div class="card-title">📶 connection & network <span>live</span></div>
+      <div class="data-row"><span class="row-label">⬇️ downlink (mbps)</span><span class="row-value" id="downlink">—</span></div>
+      <div class="data-row"><span class="row-label">⏱️ rtt (ms)</span><span class="row-value" id="rtt">—</span></div>
+      <div class="data-row"><span class="row-label">📱 effective type</span><span class="row-value" id="effType">—</span></div>
+      <div class="data-row"><span class="row-label">📻 connection type</span><span class="row-value" id="connType">—</span></div>
+      <div class="data-row"><span class="row-label">💾 save data mode</span><span class="row-value" id="saveData">—</span></div>
+      <div class="data-row"><span class="row-label">📶 signal strength</span><span class="row-value">(not exposed)</span></div>
+      <div class="data-row"><span class="row-label">📊 data inbound/outbound</span><span class="row-value">(permission req)</span></div>
     </div>
 
-    <script>
-        // Initialize chart
-        let myChart;
-        let layers = [];
-        let activeLayerId = 1;
-        let nextLayerId = 2;
-        
-        // Default data for first layer
-        const defaultLayerData = {
-            id: 1,
-            name: 'Layer 1',
-            color: '#4361ee',
-            visible: true,
-            dataPoints: [
-                { label: 'Jan', value: 1200 },
-                { label: 'Feb', value: 1900 },
-                { label: 'Mar', value: 1500 },
-                { label: 'Apr', value: 2200 },
-                { label: 'May', value: 1800 }
-            ]
+    <!-- system / browser / extra -->
+    <div class="card" id="sysCard">
+      <div class="card-title">🖥️ system & browser <span>fingerprint</span></div>
+      <div class="data-row"><span class="row-label">🧾 user agent</span><span class="row-value" id="ua" style="font-size:0.8rem;">—</span></div>
+      <div class="data-row"><span class="row-label">📱 platform</span><span class="row-value" id="platform">—</span></div>
+      <div class="data-row"><span class="row-label">🗣️ language</span><span class="row-value" id="lang">—</span></div>
+      <div class="data-row"><span class="row-label">🧠 cores / memory</span><span class="row-value" id="hw">—</span></div>
+      <div class="data-row"><span class="row-label">🕒 timezone / utc</span><span class="row-value" id="tz">—</span></div>
+      <div class="data-row"><span class="row-label">🖥️ screen resolution</span><span class="row-value" id="screen">—</span></div>
+      <div class="data-row"><span class="row-label">🍪 cookies enabled</span><span class="row-value" id="cookies">—</span></div>
+    </div>
+  </div>
+
+  <!-- extra incoming/outgoing simulation & raw data -->
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="card-title">🚦 incoming / outgoing & full scan artifacts <span>packet‑view (simulated)</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between;">
+        <div style="flex: 1; min-width: 250px;">
+          <div class="data-row"><span class="row-label">📨 last ICMP echo</span><span class="row-value">127.0.0.1 → google.com (timeout)</span></div>
+          <div class="data-row"><span class="row-label">📤 outgoing SYN</span><span class="row-value">local → 8.8.8.8:443 (filtered)</span></div>
+          <div class="data-row"><span class="row-label">📥 inbound ACK</span><span class="row-value">54.32.12.1:443 → local (state established)</span></div>
+          <div class="data-row"><span class="row-label">🌐 dns query (A)</span><span class="row-value" id="dnsTest">—</span></div>
+        </div>
+        <div style="flex: 1; min-width: 250px;">
+          <div class="data-row"><span class="row-label">📡 traceroute hop</span><span class="row-value">192.168.0.1 2.3ms</span></div>
+          <div class="data-row"><span class="row-label">🔎 port scan (common)</span><span class="row-value">22 closed · 80 open? · 443 open?</span></div>
+          <div class="data-row"><span class="row-label">📦 webrtc raw candidates</span><span class="row-value" id="rawCandidates">0</span></div>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; font-size: 0.8rem; background: #0b1423; padding: 0.8rem; border-radius: 16px; color: #7fa3cf; border: 1px solid #1e3b5c;">
+        ⓘ browser sandbox limits real network scan. shown data = client-side + ip-api + WebRTC + navigator APIs. “incoming/outgoing” are illustrative based on connection state.
+      </div>
+    </div>
+  </div>
+  <div class="footnote">⚡ full network self‑scan · data refreshes live · <span id="timestamp"></span></div>
+</div>
+
+<script>
+(function() {
+  // --- DOM references ---
+  const publicIpEl = document.getElementById('publicIp');
+  const countryEl = document.getElementById('country');
+  const cityRegionEl = document.getElementById('cityRegion');
+  const coordsEl = document.getElementById('coords');
+  const ispEl = document.getElementById('isp');
+  const orgEl = document.getElementById('org');
+  const asnEl = document.getElementById('asn');
+  const proxyEl = document.getElementById('proxy');
+  const localIpsContainer = document.getElementById('localIpsContainer');
+  const candidateCountEl = document.getElementById('candidateCount');
+  const rawCandidatesEl = document.getElementById('rawCandidates');
+  const downlinkEl = document.getElementById('downlink');
+  const rttEl = document.getElementById('rtt');
+  const effTypeEl = document.getElementById('effType');
+  const connTypeEl = document.getElementById('connType');
+  const saveDataEl = document.getElementById('saveData');
+  const uaEl = document.getElementById('ua');
+  const platformEl = document.getElementById('platform');
+  const langEl = document.getElementById('lang');
+  const hwEl = document.getElementById('hw');
+  const tzEl = document.getElementById('tz');
+  const screenEl = document.getElementById('screen');
+  const cookiesEl = document.getElementById('cookies');
+  const dnsTestEl = document.getElementById('dnsTest');
+  const timestampEl = document.getElementById('timestamp');
+
+  // --- state ---
+  let localIPs = new Set();
+  let candidateRawCount = 0;
+
+  // --- helper: update timestamp
+  function updateTimestamp() {
+    const now = new Date();
+    timestampEl.textContent = now.toISOString().slice(0,19).replace('T',' ') + ' UTC';
+  }
+  setInterval(updateTimestamp, 1000);
+  updateTimestamp();
+
+  // --- 1. public IP + geo via ip-api (JSONP to avoid CORS)
+  function fetchGeo() {
+    // reset geo fields while loading
+    publicIpEl.innerHTML = `⟳ scanning... <span class="loader" style="margin-left:6px;"></span>`;
+    countryEl.textContent = '⟳';
+    cityRegionEl.textContent = '⟳';
+    coordsEl.textContent = '⟳';
+    ispEl.textContent = '⟳';
+    orgEl.textContent = '⟳';
+    asnEl.textContent = '⟳';
+    proxyEl.textContent = '⟳';
+
+    return new Promise((resolve, reject) => {
+      const scriptId = 'ipapi-jsonp';
+      const existing = document.getElementById(scriptId);
+      if (existing) existing.remove();
+
+      window.handleGeoResponse = function(data) {
+        if (data && data.status === 'success') {
+          publicIpEl.textContent = data.query || '—';
+          countryEl.textContent = data.country || '—';
+          cityRegionEl.textContent = (data.city || '') + (data.regionName ? ', ' + data.regionName : '') || '—';
+          coordsEl.textContent = (data.lat ? data.lat.toFixed(4) : '—') + ' , ' + (data.lon ? data.lon.toFixed(4) : '—');
+          ispEl.textContent = data.isp || '—';
+          orgEl.textContent = data.org || '—';
+          asnEl.textContent = data.as || '—';
+          let proxyStatus = [];
+          if (data.proxy) proxyStatus.push('proxy');
+          if (data.mobile) proxyStatus.push('mobile');
+          if (data.hosting) proxyStatus.push('hosting');
+          proxyEl.textContent = proxyStatus.length ? proxyStatus.join(', ') : 'normal';
+        } else {
+          publicIpEl.textContent = '❌ error';
+          countryEl.textContent = '—';
+        }
+        resolve(data);
+        delete window.handleGeoResponse;
+      };
+
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://ip-api.com/json/?callback=handleGeoResponse&fields=status,message,query,country,regionName,city,lat,lon,isp,org,as,proxy,mobile,hosting';
+      script.onerror = () => {
+        publicIpEl.textContent = 'failed to load geo';
+        reject();
+      };
+      document.head.appendChild(script);
+
+      // timeout fallback
+      setTimeout(() => {
+        if (window.handleGeoResponse) {
+          publicIpEl.textContent = 'geo timeout';
+          delete window.handleGeoResponse;
+        }
+      }, 7000);
+    });
+  }
+
+  // --- 2. local IPs via WebRTC (ICE candidates) ---
+  function gatherLocalIPs() {
+    localIPs.clear();
+    candidateRawCount = 0;
+    localIpsContainer.innerHTML = '<span class="loader"></span> gathering...';
+    if (candidateCountEl) candidateCountEl.textContent = '⏳';
+    rawCandidatesEl.textContent = '0';
+
+    return new Promise((resolve) => {
+      const rtcConfig = { iceServers: [] };
+      let candidates = [];
+      let timeoutId = null;
+
+      try {
+        const pc = new RTCPeerConnection(rtcConfig);
+        pc.createDataChannel('');  // needed to trigger gathering
+
+        pc.onicecandidate = (e) => {
+          if (e.candidate) {
+            candidateRawCount++;
+            const cand = e.candidate.candidate;
+            if (cand) {
+              candidates.push(cand);
+              // regex IPv4
+              const ipv4Regex = /([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/;
+              const match = cand.match(ipv4Regex);
+              if (match && match[1]) {
+                const ip = match[1];
+                // filter out obvious non-local? but keep all
+                localIPs.add(ip);
+              }
+              // also try IPv6 (simplified)
+              const ipv6Regex = /([a-f0-9:]+:+)+[a-f0-9]+/i;
+              const match6 = cand.match(ipv6Regex);
+              if (match6 && match6[0] && !match6[0].includes('.local')) {
+                localIPs.add(match6[0].split(' ')[0]); // crude
+              }
+            }
+          } else {
+            // gathering finished
+            if (timeoutId) clearTimeout(timeoutId);
+            finalize();
+          }
         };
-        
-        // Initialize layers array
-        layers.push(defaultLayerData);
-        
-        // Chart configuration
-        const config = {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-                datasets: []
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Sales Data',
-                        font: {
-                            size: 18,
-                            weight: 'bold'
-                        },
-                        padding: {
-                            top: 10,
-                            bottom: 30
-                        }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top',
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        titleFont: {
-                            size: 14
-                        },
-                        bodyFont: {
-                            size: 14
-                        },
-                        padding: 10,
-                        cornerRadius: 5
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Months',
-                            font: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            padding: {top: 10, bottom: 10}
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Revenue ($)',
-                            font: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            padding: {top: 10, bottom: 10}
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                }
-            }
+
+        pc.onicegatheringstatechange = () => {
+          if (pc.iceGatheringState === 'complete') {
+            if (timeoutId) clearTimeout(timeoutId);
+            finalize();
+          }
         };
-        
-        // Initialize the data inputs for a layer
-        function initializeDataInputs(layerId) {
-            const dataInputs = document.getElementById('data-inputs');
-            dataInputs.innerHTML = '';
-            
-            const layer = layers.find(l => l.id === layerId);
-            if (!layer) return;
-            
-            layer.dataPoints.forEach((point, index) => {
-                const newRow = document.createElement('div');
-                newRow.className = 'data-row';
-                newRow.innerHTML = `
-                    <input type="text" class="data-label" placeholder="Label" value="${point.label}">
-                    <input type="number" class="data-value" placeholder="Value" value="${point.value}">
-                    <button class="remove-data">×</button>
-                `;
-                dataInputs.appendChild(newRow);
-            });
-            
-            // Add event listeners to the new inputs
-            attachInputListeners(layerId);
+
+        pc.createOffer().then(offer => pc.setLocalDescription(offer)).catch(() => {});
+
+        function finalize() {
+          if (pc) pc.close();
+          let ips = Array.from(localIPs).filter(ip => !ip.startsWith('0.') && ip !== '127.0.0.1' && ip !== '0.0.0.0'); // filter localhost sometimes
+          if (ips.length === 0 && localIPs.size > 0) ips = Array.from(localIPs);
+          if (ips.length === 0) ips = ['192.168.x.x (not gathered)', '10.x.x.x (webrtc delay)'];
+
+          // update UI
+          localIpsContainer.innerHTML = '';
+          ips.slice(0, 8).forEach(ip => {
+            const span = document.createElement('span');
+            span.className = 'value-item';
+            span.textContent = ip;
+            localIpsContainer.appendChild(span);
+          });
+          if (ips.length > 8) localIpsContainer.innerHTML += '<span class="value-item">+more</span>';
+          if (candidateCountEl) candidateCountEl.textContent = localIPs.size + ' unique / ' + candidateRawCount + ' raw';
+          rawCandidatesEl.textContent = candidateRawCount;
+          resolve(ips);
         }
-        
-        // Attach event listeners to all inputs for a layer
-        function attachInputListeners(layerId) {
-            document.querySelectorAll('.data-label, .data-value').forEach(input => {
-                input.addEventListener('input', () => updateLayerData(layerId));
-            });
-            
-            document.getElementById('chart-title').addEventListener('input', updateChart);
-            document.getElementById('x-axis-label').addEventListener('input', updateChart);
-            document.getElementById('y-axis-label').addEventListener('input', updateChart);
-        }
-        
-        // Update layer data from inputs
-        function updateLayerData(layerId) {
-            const layer = layers.find(l => l.id === layerId);
-            if (!layer) return;
-            
-            layer.dataPoints = [];
-            
-            document.querySelectorAll('.data-row').forEach(row => {
-                const label = row.querySelector('.data-label').value;
-                const value = parseFloat(row.querySelector('.data-value').value);
-                
-                if (label && !isNaN(value)) {
-                    layer.dataPoints.push({ label, value });
-                }
-            });
-            
-            updateChart();
-        }
-        
-        // Initialize chart and data
-        window.onload = function() {
-            const ctx = document.getElementById('myChart').getContext('2d');
-            myChart = new Chart(ctx, config);
-            
-            // Initialize data inputs for the first layer
-            initializeDataInputs(activeLayerId);
-            
-            // Render layer list
-            renderLayerList();
-            
-            // Set up event listeners
-            document.getElementById('save-chart').addEventListener('click', saveChart);
-            document.getElementById('export-code').addEventListener('click', exportCode);
-            document.getElementById('import-code').addEventListener('click', openImportModal);
-            document.getElementById('reset-chart').addEventListener('click', resetChart);
-            document.getElementById('add-data').addEventListener('click', addDataRow);
-            document.getElementById('add-layer').addEventListener('click', addLayer);
-            document.getElementById('show-all-layers').addEventListener('click', showAllLayers);
-            document.getElementById('hide-all-layers').addEventListener('click', hideAllLayers);
-            
-            // Color scheme selection
-            document.querySelectorAll('.color-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const activeLayer = layers.find(l => l.id === activeLayerId);
-                    if (activeLayer) {
-                        activeLayer.color = this.getAttribute('data-color');
-                        updateChart();
-                    }
-                });
-            });
-            
-            // Remove data row functionality
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove-data')) {
-                    if (document.querySelectorAll('.data-row').length > 1) {
-                        e.target.closest('.data-row').remove();
-                        updateLayerData(activeLayerId);
-                    } else {
-                        alert('You need at least one data point!');
-                    }
-                }
-            });
-            
-            // Modal functionality
-            setupModals();
-            
-            // File import functionality
-            setupFileImport();
-            
-            // Initial chart update
-            updateChart();
-        };
-        
-        // Update chart based on all layers
-        function updateChart() {
-            const chartTitle = document.getElementById('chart-title').value;
-            const xAxisLabel = document.getElementById('x-axis-label').value;
-            const yAxisLabel = document.getElementById('y-axis-label').value;
-            
-            // Get all labels from the first layer (assuming all layers have same labels)
-            const labels = layers[0]?.dataPoints.map(point => point.label) || [];
-            
-            // Update datasets for each layer
-            const datasets = layers.map(layer => {
-                const data = layer.dataPoints.map(point => point.value);
-                
-                return {
-                    label: layer.name,
-                    data: data,
-                    backgroundColor: hexToRgba(layer.color, 0.1),
-                    borderColor: layer.color,
-                    borderWidth: 3,
-                    tension: 0.2,
-                    fill: false,
-                    pointBackgroundColor: layer.color,
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    hidden: !layer.visible
-                };
-            });
-            
-            // Update chart configuration
-            myChart.config.data.labels = labels;
-            myChart.config.data.datasets = datasets;
-            myChart.config.options.plugins.title.text = chartTitle;
-            
-            // Update axis labels
-            myChart.config.options.scales.x.title.text = xAxisLabel;
-            myChart.config.options.scales.y.title.text = yAxisLabel;
-            
-            // Update the chart
-            myChart.update();
-        }
-        
-        // Add new data row to active layer
-        function addDataRow() {
-            const dataInputs = document.getElementById('data-inputs');
-            const newRow = document.createElement('div');
-            newRow.className = 'data-row';
-            
-            // Generate a default label based on existing labels
-            const existingLabels = Array.from(document.querySelectorAll('.data-label')).map(input => input.value);
-            let newLabel = 'New Point';
-            let counter = 1;
-            
-            while (existingLabels.includes(newLabel)) {
-                newLabel = `New Point ${counter}`;
-                counter++;
-            }
-            
-            newRow.innerHTML = `
-                <input type="text" class="data-label" placeholder="Label" value="${newLabel}">
-                <input type="number" class="data-value" placeholder="Value" value="0">
-                <button class="remove-data">×</button>
-            `;
-            dataInputs.appendChild(newRow);
-            
-            // Scroll to the new row
-            newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            // Focus on the new value input
-            newRow.querySelector('.data-value').focus();
-            
-            // Add event listener to the new inputs
-            newRow.querySelector('.data-label').addEventListener('input', () => updateLayerData(activeLayerId));
-            newRow.querySelector('.data-value').addEventListener('input', () => updateLayerData(activeLayerId));
-            
-            updateLayerData(activeLayerId);
-        }
-        
-        // Add a new layer
-        function addLayer() {
-            const newLayerId = nextLayerId++;
-            const colorOptions = ['#4361ee', '#e63946', '#2a9d8f', '#e9c46a', '#9d4edd'];
-            const newColor = colorOptions[(newLayerId - 1) % colorOptions.length];
-            
-            const newLayer = {
-                id: newLayerId,
-                name: `Layer ${newLayerId}`,
-                color: newColor,
-                visible: true,
-                dataPoints: [
-                    { label: 'Jan', value: 0 },
-                    { label: 'Feb', value: 0 },
-                    { label: 'Mar', value: 0 },
-                    { label: 'Apr', value: 0 },
-                    { label: 'May', value: 0 }
-                ]
-            };
-            
-            layers.push(newLayer);
-            renderLayerList();
-            setActiveLayer(newLayerId);
-            updateChart();
-        }
-        
-        // Remove a layer
-        function removeLayer(layerId) {
-            if (layers.length <= 1) {
-                alert('You need at least one layer!');
-                return;
-            }
-            
-            layers = layers.filter(l => l.id !== layerId);
-            renderLayerList();
-            
-            // If we removed the active layer, set a new active layer
-            if (activeLayerId === layerId) {
-                setActiveLayer(layers[0].id);
-            }
-            
-            updateChart();
-        }
-        
-        // Toggle layer visibility
-        function toggleLayerVisibility(layerId) {
-            const layer = layers.find(l => l.id === layerId);
-            if (layer) {
-                layer.visible = !layer.visible;
-                renderLayerList();
-                updateChart();
-            }
-        }
-        
-        // Set active layer
-        function setActiveLayer(layerId) {
-            activeLayerId = layerId;
-            const activeLayer = layers.find(l => l.id === layerId);
-            
-            if (activeLayer) {
-                document.getElementById('active-layer-name').textContent = activeLayer.name;
-                
-                // Update color picker
-                document.querySelectorAll('.color-option').forEach(opt => {
-                    opt.classList.remove('active');
-                    if (opt.getAttribute('data-color') === activeLayer.color) {
-                        opt.classList.add('active');
-                    }
-                });
-                
-                // Update data inputs
-                initializeDataInputs(layerId);
-            }
-            
-            renderLayerList();
-        }
-        
-        // Show all layers
-        function showAllLayers() {
-            layers.forEach(layer => {
-                layer.visible = true;
-            });
-            renderLayerList();
-            updateChart();
-        }
-        
-        // Hide all layers
-        function hideAllLayers() {
-            layers.forEach(layer => {
-                layer.visible = false;
-            });
-            renderLayerList();
-            updateChart();
-        }
-        
-        // Render the layer list
-        function renderLayerList() {
-            const layerList = document.getElementById('layer-list');
-            layerList.innerHTML = '';
-            
-            layers.forEach(layer => {
-                const layerItem = document.createElement('div');
-                layerItem.className = `layer-item ${layer.id === activeLayerId ? 'active' : ''}`;
-                layerItem.innerHTML = `
-                    <div class="layer-color" style="background-color: ${layer.color};"></div>
-                    <div class="layer-name">${layer.name}</div>
-                    <div class="layer-actions">
-                        <button class="layer-toggle">${layer.visible ? '👁️' : '👁️‍🗨️'}</button>
-                        <button class="layer-remove">🗑️</button>
-                    </div>
-                `;
-                
-                // Add event listeners
-                layerItem.querySelector('.layer-toggle').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleLayerVisibility(layer.id);
-                });
-                
-                layerItem.querySelector('.layer-remove').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    removeLayer(layer.id);
-                });
-                
-                layerItem.addEventListener('click', () => {
-                    setActiveLayer(layer.id);
-                });
-                
-                layerList.appendChild(layerItem);
-            });
-        }
-        
-        // Save chart as image
-        function saveChart() {
-            const link = document.createElement('a');
-            const chartTitle = document.getElementById('chart-title').value || 'line-chart';
-            const fileName = chartTitle.toLowerCase().replace(/\s+/g, '-') + '.png';
-            
-            link.download = fileName;
-            link.href = myChart.toBase64Image();
-            link.click();
-        }
-        
-        // Reset chart to default
-        function resetChart() {
-            if (!confirm('Are you sure you want to reset the chart? All your changes will be lost.')) {
-                return;
-            }
-            
-            document.getElementById('chart-title').value = 'Sales Data';
-            document.getElementById('x-axis-label').value = 'Months';
-            document.getElementById('y-axis-label').value = 'Revenue ($)';
-            
-            // Reset layers
-            layers = [defaultLayerData];
-            nextLayerId = 2;
-            activeLayerId = 1;
-            
-            // Reset color scheme
-            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
-            document.querySelector('.color-option[data-color="#4361ee"]').classList.add('active');
-            
-            // Reset data inputs
-            renderLayerList();
-            setActiveLayer(activeLayerId);
-            
-            updateChart();
-        }
-        
-        // Export chart as code
-        function exportCode() {
-            // Collect all chart data
-            const chartData = {
-                title: document.getElementById('chart-title').value,
-                xAxisLabel: document.getElementById('x-axis-label').value,
-                yAxisLabel: document.getElementById('y-axis-label').value,
-                layers: layers
-            };
-            
-            // Convert to JSON string with formatting
-            const codeString = JSON.stringify(chartData, null, 2);
-            
-            // Display in modal
-            document.getElementById('export-code-display').textContent = codeString;
-            
-            // Show modal
-            document.getElementById('export-modal').style.display = 'flex';
-            
-            // Set up copy and download buttons
-            document.getElementById('copy-code').onclick = function() {
-                navigator.clipboard.writeText(codeString).then(() => {
-                    alert('Code copied to clipboard!');
-                }).catch(err => {
-                    console.error('Failed to copy: ', err);
-                    alert('Failed to copy code to clipboard');
-                });
-            };
-            
-            document.getElementById('download-code').onclick = function() {
-                const link = document.createElement('a');
-                const chartTitle = document.getElementById('chart-title').value || 'chart';
-                const fileName = chartTitle.toLowerCase().replace(/\s+/g, '-') + '-code.txt';
-                
-                link.download = fileName;
-                link.href = URL.createObjectURL(new Blob([codeString], { type: 'text/plain' }));
-                link.click();
-            };
-        }
-        
-        // Import chart from code
-        function openImportModal() {
-            // Clear previous inputs
-            document.getElementById('import-code-textarea').value = '';
-            document.getElementById('file-message').textContent = 'No file selected';
-            document.getElementById('file-input').value = '';
-            
-            // Show modal
-            document.getElementById('import-modal').style.display = 'flex';
-        }
-        
-        // Set up modals
-        function setupModals() {
-            // Close modals when clicking close button or outside
-            document.querySelectorAll('.close-modal').forEach(button => {
-                button.addEventListener('click', function() {
-                    document.querySelectorAll('.modal').forEach(modal => {
-                        modal.style.display = 'none';
-                    });
-                });
-            });
-            
-            // Close modals when clicking outside content
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-            
-            // Set up import confirmation
-            document.getElementById('confirm-import').addEventListener('click', importChart);
-        }
-        
-        // Set up file import functionality
-        function setupFileImport() {
-            const fileDropArea = document.getElementById('file-drop-area');
-            const fileInput = document.getElementById('file-input');
-            const fileMessage = document.getElementById('file-message');
-            const browseFiles = document.getElementById('browse-files');
-            
-            // Click on area to trigger file input
-            fileDropArea.addEventListener('click', function() {
-                fileInput.click();
-            });
-            
-            browseFiles.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent triggering the file drop area click
-                fileInput.click();
-            });
-            
-            // Handle file selection
-            fileInput.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    const file = this.files[0];
-                    fileMessage.textContent = `Selected: ${file.name}`;
-                    
-                    // Read the file
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('import-code-textarea').value = e.target.result;
-                    };
-                    reader.readAsText(file);
-                }
-            });
-            
-            // Drag and drop functionality
-            fileDropArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                fileDropArea.classList.add('dragover');
-            });
-            
-            fileDropArea.addEventListener('dragleave', function() {
-                fileDropArea.classList.remove('dragover');
-            });
-            
-            fileDropArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                fileDropArea.classList.remove('dragover');
-                
-                if (e.dataTransfer.files.length > 0) {
-                    const file = e.dataTransfer.files[0];
-                    fileInput.files = e.dataTransfer.files;
-                    fileMessage.textContent = `Selected: ${file.name}`;
-                    
-                    // Read the file
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('import-code-textarea').value = e.target.result;
-                    };
-                    reader.readAsText(file);
-                }
-            });
-        }
-        
-        // Import chart from code
-        function importChart() {
-            const codeText = document.getElementById('import-code-textarea').value.trim();
-            
-            if (!codeText) {
-                alert('Please provide chart code to import.');
-                return;
-            }
-            
-            try {
-                const chartData = JSON.parse(codeText);
-                
-                // Validate the imported data
-                if (!chartData.title || !chartData.xAxisLabel || !chartData.yAxisLabel || 
-                    !chartData.layers || !Array.isArray(chartData.layers)) {
-                    throw new Error('Invalid chart data format');
-                }
-                
-                // Apply the imported data
-                document.getElementById('chart-title').value = chartData.title;
-                document.getElementById('x-axis-label').value = chartData.xAxisLabel;
-                document.getElementById('y-axis-label').value = chartData.yAxisLabel;
-                
-                // Set the layers
-                layers = chartData.layers;
-                nextLayerId = Math.max(...layers.map(l => l.id)) + 1;
-                activeLayerId = layers[0].id;
-                
-                // Reset color scheme
-                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
-                const activeLayer = layers.find(l => l.id === activeLayerId);
-                if (activeLayer) {
-                    const colorOption = document.querySelector(`.color-option[data-color="${activeLayer.color}"]`);
-                    if (colorOption) {
-                        colorOption.classList.add('active');
-                    } else {
-                        // If color doesn't exist, use the first one
-                        document.querySelector('.color-option').classList.add('active');
-                    }
-                }
-                
-                // Reset data inputs
-                renderLayerList();
-                setActiveLayer(activeLayerId);
-                
-                // Update the chart
-                updateChart();
-                
-                // Close the modal
-                document.getElementById('import-modal').style.display = 'none';
-                
-                alert('Chart imported successfully!');
-            } catch (error) {
-                console.error('Import error:', error);
-                alert('Failed to import chart. Please check that the code is valid.');
-            }
-        }
-        
-        // Helper function to convert hex to rgba
-        function hexToRgba(hex, alpha) {
-            const r = parseInt(hex.slice(1, 3), 16);
-            const g = parseInt(hex.slice(3, 5), 16);
-            const b = parseInt(hex.slice(5, 7), 16);
-            
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        }
-    </script>
+
+        timeoutId = setTimeout(() => {
+          if (pc) pc.close();
+          finalize();
+        }, 3000);
+      } catch (e) {
+        localIpsContainer.innerHTML = '<span class="value-item">WebRTC blocked</span>';
+        if (candidateCountEl) candidateCountEl.textContent = 'error';
+        resolve([]);
+      }
+    });
+  }
+
+  // --- 3. connection & network info (NetworkInformation) ---
+  function fillConnectionInfo() {
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn) {
+      downlinkEl.textContent = (conn.downlink || '—') + ' Mbps';
+      rttEl.textContent = (conn.rtt || '—') + ' ms';
+      effTypeEl.textContent = conn.effectiveType || '—';
+      connTypeEl.textContent = conn.type || 'unknown';
+      saveDataEl.textContent = conn.saveData ? 'enabled' : 'not enabled';
+    } else {
+      downlinkEl.textContent = 'API not supported';
+      rttEl.textContent = '—';
+      effTypeEl.textContent = '—';
+      connTypeEl.textContent = '—';
+      saveDataEl.textContent = '—';
+    }
+  }
+
+  // --- 4. system / browser info ---
+  function fillSystemInfo() {
+    uaEl.textContent = navigator.userAgent || '—';
+    platformEl.textContent = navigator.platform || '—';
+    langEl.textContent = navigator.language + ' / ' + (navigator.languages ? navigator.languages.join(', ') : '—');
+    const cores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency + ' cores' : '—';
+    const memory = navigator.deviceMemory ? navigator.deviceMemory + 'GB' : '—';
+    hwEl.textContent = cores + ', ' + memory;
+    tzEl.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone + ' / ' + Intl.DateTimeFormat().resolvedOptions().timeZone;
+    screenEl.textContent = screen.width + 'x' + screen.height + ' (' + screen.colorDepth + 'bit)';
+    cookiesEl.textContent = navigator.cookieEnabled ? 'yes' : 'no';
+
+    // dns test simulation (just show local dns)
+    dnsTestEl.textContent = 'cloudflare (1.1.1.1) · google (8.8.8.8)';
+  }
+
+  // --- 5. simulate hostname (only via WebRTC mdns? but we put static)
+  function fillHostname() {
+    const host = window.location.hostname;
+    document.getElementById('hostname').textContent = host || 'localhost';
+  }
+
+  // --- main refresh all ---
+  async function refreshAll() {
+    // reset webrtc area
+    localIpsContainer.innerHTML = '<span class="loader"></span> scanning...';
+    candidateCountEl.textContent = '⟳';
+    rawCandidatesEl.textContent = '⟳';
+
+    // run parallel
+    const geoPromise = fetchGeo();
+    const webrtcPromise = gatherLocalIPs();
+
+    fillConnectionInfo();
+    fillSystemInfo();
+    fillHostname();
+
+    await Promise.allSettled([geoPromise, webrtcPromise]);
+
+    // extra after webrtc
+    if (candidateCountEl) candidateCountEl.textContent = localIPs.size + ' unique / ' + candidateRawCount + ' raw';
+    rawCandidatesEl.textContent = candidateRawCount;
+  }
+
+  // initial load
+  refreshAll();
+
+  // refresh button
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    refreshAll();
+  });
+
+  // additional dynamic fields: show network type changes (optional)
+  if (navigator.connection) {
+    navigator.connection.addEventListener('change', () => {
+      fillConnectionInfo();
+    });
+  }
+
+})();
+</script>
 </body>
 </html>
